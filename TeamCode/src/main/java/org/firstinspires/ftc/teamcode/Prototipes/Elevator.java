@@ -9,7 +9,7 @@ public class Elevator {
 
     private OpMode opMode;
 
-    Elevator(OpMode opMode) {
+    public Elevator(OpMode opMode) {
         this.opMode = opMode;
     }
 
