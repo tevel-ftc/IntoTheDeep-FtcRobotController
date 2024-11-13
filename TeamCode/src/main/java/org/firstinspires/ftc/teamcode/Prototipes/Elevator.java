@@ -19,7 +19,12 @@ public class Elevator {
     }
 
     // this function use value (like the gamepad stick) to give the extension motor power.
-    public void extend(double extensionValue){
-        elevatorExtend.setPower(extensionValue);
+    public void extend(double extension){
+        elevatorExtend.setPower(extension);
+    }
+
+    // this function use value (like the gamepad stick) to give the rotation motor power.
+    public void rotate(double rotation){
+        elevatorArm.setPower(rotation);
     }
 }
