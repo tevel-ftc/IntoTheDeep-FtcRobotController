@@ -5,6 +5,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 public class Elevator {
 
+    final public static ARM_MAX_LIMIT = 20000;
+    final public static ARM_MAX_LIMIT = 200;
+
     private DcMotor elevatorExtend;
     private DcMotor elevatorArm;
 
@@ -17,20 +20,20 @@ public class Elevator {
     public void initElevator(){
         elevatorExtend  = opMode.hardwareMap.get(DcMotor.class, "elevatorExtend");
         elevatorArm = opMode.hardwareMap.get(DcMotor.class, "elevatorArm");
+        elevatorExtend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         elevatorArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     // this function use value (like the gamepad stick) to give the extension motor power.
     public void extend(double extension){
-        elevatorExtend.setPower(extension);
-        if (elevatorExtend.getPower()<=0.3){
-            elevatorExtend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        if (elevatorExtend.getPower()>=0.3){
+            elevatorExtend.setPower(extension);
         }
     }
     // this function use value (like the gamepad stick) to give the rotation motor power.
     public void rotateForword(){
 //        elevatorArm.setPower(rotation);
-        if(elevatorArm.getCurrentPosition()>=20000){
+        if(elevatorArm.getCurrentPosition()>=ARM_MAX_LIMIT){
             elevatorArm.setTargetPosition(elevatorArm.getCurrentPosition());
         }
         else {elevatorArm.setTargetPosition(elevatorArm.getCurrentPosition()+200);} // todo check real limit numbers
@@ -38,7 +41,7 @@ public class Elevator {
     }
     public void rotateBackword(){
 //        elevatorArm.setPower(rotation);
-        if(elevatorArm.getCurrentPosition()<=20000){
+        if(elevatorArm.getCurrentPosition()<=ARM_MIN_LIMIT){
             elevatorArm.setTargetPosition(elevatorArm.getCurrentPosition());
         }
         else {elevatorArm.setTargetPosition(elevatorArm.getCurrentPosition()-200);} // todo check real limit numbers
