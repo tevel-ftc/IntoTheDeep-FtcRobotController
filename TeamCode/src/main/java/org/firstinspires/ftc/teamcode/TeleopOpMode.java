@@ -27,47 +27,71 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Prototipes.OpModes;
+package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Prototipes.Elevator;
 
-
-/*
- * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
- * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
- * of the FTC Driver Station. When a selection is made from the menu, the corresponding OpMode
- * class is instantiated on the Robot Controller and executed.
- *
- * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
- * It includes all the skeletal structure that all linear OpModes contain.
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
- */
-
 @TeleOp(name="Basic: Linear OpMode", group="Linear OpMode")
 @Disabled
-public class ElevatorOpMode extends LinearOpMode {
+public class TeleopOpMode extends LinearOpMode {
+
+    // Declare OpMode members.
+    private final ElapsedTime runtime = new ElapsedTime();
+
+    Wheels wheels; // Declare the wheels class to control the wheels
     Elevator elevator;
+    Intake intake;
+    IMU imu; // Declare class for getting robot angles
 
     @Override
     public void runOpMode() {
+        imu = hardwareMap.get(IMU.class, "imu");
+        // Adjust the orientation parameters to match your robot
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+        imu.initialize(parameters);
 
-        elevator = new Elevator(this);
         elevator.initElevator();
 
+        elevator = new Elevator(this);
+        wheels = new Wheels(this, imu);
+        intake = new Intake(this);
+
+        elevator.initElevator();
+        intake.initIntake();
+
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
         waitForStart();
+        runtime.reset();
+
         while (opModeIsActive()) {
-            elevator.extend(gamepad2.right_stick_y);
-            elevator.rotate(gamepad2.left_stick_y);
+
+            // Move robot by controller 1
+            wheels.driveByJoystickFieldOriented(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+            // Elevator handling
+            elevator.extend(gamepad2.right_trigger);
+            elevator.extend(-gamepad2.left_trigger);
+            if (gamepad2.left_bumper){elevator.rotateBackwards();}
+            if (gamepad2.right_bumper){elevator.rotateForwards();}
+
+            if (gamepad2.circle){ intake.collect(1);}
+
+            else if (gamepad2.square){intake.collect(-1);}
+
         }
     }
 }
+
+
